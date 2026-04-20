@@ -1,0 +1,203 @@
+* {
+	border: 0;
+	box-sizing: border-box;
+	margin: 0;
+	padding: 0;
+}
+
+$hue: 223;
+$hue2: 268;
+
+:root {
+	--fg: #{hsl($hue,10%,10%)};
+	--primary: #{hsl($hue,90%,55%)};
+	--primary-hover: #{hsl($hue,90%,55%)};
+	--bg-tool: hsla(0,0%,90%,0.5);
+	--trans-dur: 0.4s;
+	--trans-timing: cubic-bezier(0.7,0,0.3,1);
+	font-size: 14px; /* DevTools 适合较小字体 */
+}
+
+body {
+	background-color: transparent; /* 适应 DevTools 背景 */
+	color: var(--fg);
+	font: 1em/1.5 "DM Sans", sans-serif;
+	height: 100vh;
+    overflow: hidden;
+}
+
+/* 核心布局包装器 */
+.devtool-wrapper {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    height: 100%;
+    padding: 1em;
+    max-width: 800px;
+    margin: 0 auto;
+    transition: all var(--trans-dur) var(--trans-timing);
+}
+
+/* 展开的工具容器 */
+.tools-container {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1em;
+    margin-bottom: 2em;
+    
+    /* 默认隐藏状态 */
+    opacity: 0;
+    transform: translateY(30px) scale(0.95);
+    pointer-events: none;
+    max-height: 0;
+    transition: all var(--trans-dur) var(--trans-timing);
+}
+
+/* 触发 Discover 后的展开状态 */
+.devtool-wrapper.is-expanded .tools-container {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    pointer-events: auto;
+    max-height: 400px; /* 给予足够展开空间 */
+}
+
+/* 非功能性工具样式 */
+.tool-item {
+    background-color: var(--bg-tool);
+    border: 1px solid hsla(0,0%,50%,0.2);
+    border-radius: 0.75em;
+    padding: 1.5em;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    box-shadow: 0 4px 12px hsla(0,0%,0%,0.05);
+    transition: transform 0.2s;
+
+    &:hover {
+        transform: translateY(-2px);
+    }
+
+    h3 { font-size: 1em; margin-bottom: 0.25em; }
+    p { font-size: 0.75em; opacity: 0.7; }
+}
+
+/* 原有导航栏样式 (保留动画逻辑) */
+.app {
+    width: 100%;
+    max-width: 25em;
+    margin: 0 auto;
+    perspective: 20em;
+}
+
+.nav {
+	background-color: hsl($hue,10%,90%);
+	border-radius: 1em;
+	box-shadow: 0 0.25em 0.5em hsla(0,0,0,0.3);
+	transform-origin: 50% 133%;
+    padding: 0.75em;
+
+	@for $t from 1 through 5 {
+		&--tilt#{$t} { animation: tilt#{$t} 0.6s ease-in-out; }
+	}
+
+	&__items {
+		display: flex;
+		justify-content: space-between;
+		list-style: none;
+	}
+	&__item {
+		&-btn {
+			display: flex;
+			flex-direction: column;
+			justify-content: flex-end;
+			align-items: center;
+			text-align: center;
+			width: 3em;
+			height: 3em;
+			text-decoration: none;
+            color: var(--fg);
+
+			&:focus, &:hover, &[aria-describedby="current"] {
+				color: var(--primary-hover);
+			}
+			&:focus { outline: transparent; }
+		}
+		&-icon {
+			display: block;
+			margin: 0 auto;
+			width: 1.5em;
+			height: 1.5em;
+			transition: transform var(--trans-dur) var(--trans-timing);
+
+			g, path, rect {
+				 animation: {
+				 	duration: calc(var(--trans-dur) * 3);
+				 	timing-function: var(--trans-timing);
+				}
+			}
+		}
+		&-text {
+			display: block;
+			font-size: 0.6em;
+			opacity: 0;
+			text-align: center;
+			transition: opacity var(--trans-dur) var(--trans-timing);
+		}
+		&-btn:focus &-icon, &-btn:hover &-icon { transform: translateY(-0.5em); }
+		&-btn:focus &-text, &-btn:hover &-text {
+			animation: fadeFlyIn calc(var(--trans-dur) * 1.5) var(--trans-timing);
+			opacity: 1;
+		}
+
+		$icons: 5;
+		$maxParts: 4;
+		@for $x from 1 through $icons {
+			@for $y from 1 through $maxParts {
+				@if ($x == 1 and $y == 1) or $x == 2 or ($x == 3 and $y == 1) or ($x == 4 and $y <= 3) or ($x == 5 and $y == 1) {
+					&-btn:focus .icon#{$x}-#{$y}, &-btn:hover .icon#{$x}-#{$y} {
+						animation-name: icon#{$x}-#{$y};
+					}
+				}
+			}
+		}
+	}
+}
+
+/* 变换原点 */
+.icon1-1 { transform-origin: 12px 6px; }
+.icon3-1 { transform-origin: 12px 1px; }
+.icon4-3 { transform-origin: 12px 10px; }
+.icon5-1 { transform-origin: 12px 20px; }
+
+/* Dark theme (DevTools 自带暗黑模式适配) */
+@media (prefers-color-scheme: dark) {
+	:root {
+		--fg: #{hsl($hue,10%,90%)};
+		--primary-hover: #{hsl($hue,90%,65%)};
+        --bg-tool: hsla(0,0%,20%,0.8);
+	}
+	.nav { background-color: hsl($hue,10%,15%); }
+    .tool-item { border-color: hsla(0,0%,100%,0.1); }
+}
+
+/* 动画定义完全保持不变 */
+@keyframes fadeFlyIn {
+	from, 33.3% { opacity: 0; transform: translateY(0.5em); }
+	to { opacity: 1; transform: translateY(0); }
+}
+@keyframes icon1-1 { from, to { transform: rotate(0); } 33% { transform: rotate(30deg); } 67% { transform: rotate(-30deg); } }
+@keyframes icon2-1 { from { transform: translate(0,0); } to { transform: translate(13px,0); } }
+@keyframes icon2-2 { from { transform: translate(0,0); } to { transform: translate(0,13px); } }
+@keyframes icon2-3 { from { transform: translate(0,0); } to { transform: translate(0,-13px); } }
+@keyframes icon2-4 { from { transform: translate(0,0); } to { transform: translate(-13px,0); } }
+@keyframes icon3-1 { from, to { transform: rotateX(0); } 50% { transform: rotateX(-135deg); } }
+@keyframes icon4-1 { from, to { height: 0; transform: translateY(0); } 50% { height: 5px; transform: translateY(-2px); } }
+@keyframes icon4-2 { from, to { height: 16px; transform: translateY(0); } 50% { height: 15px; transform: translateY(-2px); } }
+@keyframes icon4-3 { from, to { transform: rotateX(0); } 50% { transform: rotateX(-130deg); } }
+@keyframes icon5-1 { from, to { transform: rotate(0); } 50% { transform: rotate(-30deg); } }
+@keyframes tilt1 { from, to { transform: rotateY(0); } 50% { transform: rotateY(-4deg); } }
+@keyframes tilt2 { from, to { transform: rotateX(0) rotateY(0); } 50% { transform: rotateX(-3deg) rotateY(-3deg); } }
+@keyframes tilt3 { from, to { transform: rotateX(0); } 50% { transform: rotateX(8deg); } }
+@keyframes tilt4 { from, to { transform: rotateX(0) rotateY(0); } 50% { transform: rotateX(-3deg) rotateY(3deg); } }
+@keyframes tilt5 { from, to { transform: rotateY(0); } 50% { transform: rotateY(4deg); } }
