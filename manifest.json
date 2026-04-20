@@ -1,0 +1,7 @@
+{
+  "manifest_version": 3,
+  "name": "Animated Nav DevTool",
+  "version": "1.0",
+  "description": "A custom DevTools panel with interactive animated navigation.",
+  "devtools_page": "devtools.html"
+}
